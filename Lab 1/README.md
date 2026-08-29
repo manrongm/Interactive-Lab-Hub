@@ -168,9 +168,7 @@ We deliberately kept the prototype centered on light. The goal was not to reprod
 
 # Part D. Wizard the Device
 
-One collaborator will act as the prey and anglerfish while the other collaborator secretly controls the Tinkerbelle interface from a computer.
-
-The wizard will control the prey's movement and another collaborator will select the appropriate light state.
+One collaborator will act as the prey and anglerfish, while the other collaborator secretly controls the Tinkerbelle interface from a computer. The wizard observes the prey’s movement in real time and responds by adjusting the light’s brightness, rhythm, and movement, selecting the appropriate light behavior as the interaction unfolds.
 
 **Prey enters → Wizard turns lure on**
 
@@ -198,6 +196,7 @@ Non-sequential interaction sketch: The sketch shows the relationship between the
 
 Collaborators & influences: Wenqing Pan performed both the anglerfish and the prey in the final video. Manrong Mao acted as the hidden wizard, controlling the light’s brightness, pulsing frequency, and movement in response to the prey’s behavior. Together, we used the light to recreate the anglerfish’s bioluminescent hunting strategy in the deep sea.
 
+![prototyped interaction sketch](./sketch.png)
 
 ## Research Sources
 
