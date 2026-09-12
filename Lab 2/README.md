@@ -160,6 +160,7 @@ You can look in `image.py` for an example of how to display an image on the scre
 
 ### Raspberry Pi screen test![Raspberry Pi screen test](testScreen.png)
 ### Mac address info![MAC address info](macaddress.jpg)
+MiniPiTFT displaying the Raspberry Pi's network information and unique MAC address through `piscreen.service`.
 
 
 
