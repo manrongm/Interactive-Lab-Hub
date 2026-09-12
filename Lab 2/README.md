@@ -158,6 +158,7 @@ You can look in `image.py` for an example of how to display an image on the scre
 
 \*\*\***Include a picture of your own Raspberry Pi displaying the piscreen.service with your unique MAC address. Additionally, please provide another picture showing the successful completion of the screen test.**\*\*\*
 
+![Raspberry Pi screen test and MAC address info](testScreen.png)
 
 ## Part D. 
 ### Set up the Display Clock Demo
@@ -183,17 +184,19 @@ Option 3. A nowadays often preferred method is to use Microsoft [VS code to remo
 
 Pro Tip: Using tools like [code-server](https://coder.com/docs/code-server/latest) you can even setup a VS Code coding environment hosted on your raspberry pi and code through a web browser on your tablet or smartphone! 
 
+[View the clock display code](screen_clock.py#L63-L74)
+### Time shows in the screen![Time](time.jpg)
+
 ## Part E. Read Part 2. Sketch and brainstorm further interactions and features you would like for your clock.
 
-One potential source of ideas might be thinking about other clocks and timekeeping devices for inspiration.
+### Time as Progress 
+My idea is to create a clock that represents **time as progress** rather than displaying the current hour and minute. Instead of telling users what time it is, the clock shows how much of a meaningful time period has already passed and how much remains. Users can view progress at different scales, including **Today**, **This Week**, and **Semester**. The two physical buttons on the MiniPiTFT would support different interactions. **Button A** switches between time scales, allowing the user to cycle through Today, This Week, and Semester. **Button B** switches between different ways of visualizing the same time information, such as a **progress bar**, **percentage completed**, or **time remaining**. The display color could also gradually change as the end of the selected time period approaches. For example, the screen could begin with a calmer color when most of the time remains and gradually shift as the period gets closer to completion. The goal of this concept is to make time feel more **visual, contextual, and tangible**. Rather than functioning as a traditional digital or analog clock, it helps users understand where they currently are within a larger period of time. 
 
-Another might be novel units of time. How do you measure a year? [In daylights? In midnights? In cups of coffee?](https://www.youtube.com/watch?v=wsj15wPpjLY)
+### Interaction Sketch ![Semester Progress Clock Sketch](sketch.jpg)
 
-We strongly discourage literal digital or analog clock display: Be creative.
+### Verplank diagrams![Diagram](diagram.jpg)
 
-
-** Insert ideas, sketches, [Verplank diagrams](https://ccrma.stanford.edu/courses/250a-fall-2004/IDSketchbok.pdf)), storyboards for your ideas **
-
+### Storyboard![storyboard](storyboard.jpg)
 
 
 **Put the names of the people you gave feedback to here. (Even better, add links to their repos here!)**
