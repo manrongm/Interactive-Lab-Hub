@@ -204,9 +204,6 @@ My idea is to create a clock that represents **time as progress** rather than di
 
 ### Storyboard![storyboard](storyboard.jpg)
 
-
-**Put the names of the people you gave feedback to here. (Even better, add links to their repos here!)**
-
 # Lab 2 Part 2
 
 ## Prep 
@@ -216,44 +213,65 @@ My idea is to create a clock that represents **time as progress** rather than di
 2. Look at and give feedback on the Part E. for at least 3 other people in the class and get 3 people to comment on your Part E!)
 **Put the feedback for your ideas here.**
 
-## Update your Lab Hub
+**Put the names of the people you gave feedback to here. (Even better, add links to their repos here!)**
 
-[Update your Lab Hub](pull_updates/README.md) to get the latest content and requirements for Part 2.
+https://github.com/Morinzzz/Interactive-Lab-Hub/tree/Fall2026/Lab%202
+
+Morin Zhou
+
+I like how simple and clear the idea is. Showing today, week, and semester progress makes time feel more visible than a normal clock. The storyboard is also easy to follow. One thing I was confused about is the top/bottom button mapping, because I would not immediately know which button leads to which view. I also think the ending about “planning my daily schedule” is a little stronger than what the device actually does. Maybe the final benefit could focus more on understanding how much time is left.
+
+https://github.com/certaindragon3/Interactive-Lab-Hub/tree/Fall2026/Lab%202 
+
+Jiesen Huang
+
+Hi! I like this idea a lot — it feels very doable on the MiniPiTFT, and the Today / This Week / Semester scales are genuinely useful. One thing that could make it more fun and less like a plain progress bar is adding some motion that carries meaning. For example, when Button A switches scales, the Today bar could shrink and slide into its slot inside the week, and the week could shrink into the semester, so you actually see how the time periods nest. You could also add small moments at milestones (a little burst at 25/50/75%, or something celebratory at the end of the day or week), or make the fill feel physical, like liquid that gently sloshes when you press a button. Right now Button B shows the same number three ways; maybe one of those views could be a more playful metaphor instead. Also, the Semester view will need start and end dates, so it's worth deciding where those get set. — Jiesen
+
+https://github.com/ctyaaaaao/Interactive-Lab-Hub/blob/Fall2026/Lab%202/README.md
+
+Ziyao Zhang
+
+I really like the idea of seeing how much of the day is left because it could make me look forward to the end of the day. One thing I would be curious about is whether showing the percentage could also make some users feel pressured when there is not much time left. Maybe users could choose between seeing time passed and time remaining.
 
 ## Modify the barebones clock to make it your own
 
-Start small, pick just one element of your overall idea, just to show you have a handle on the code and components.
+### Barebones Prototype
 
-\*\*\***Put a copy of your code in your Lab 2 Github repo.**\*\*\*
+For the barebones version, I focused only on showing the progress of one day. To make the change visible in a short demo, I sped up the clock so that 1 real-world second represents 1 hour in the simulated day. This means the full 24-hour cycle can be shown in about 24 seconds. The progress bar, percentage, and remaining time update as the simulated day moves from 0% to 100%.
+
+[View the barebones code](progress_clock_barebones.py)
 
 ## Make a short video of your modified barebones PiClock
 
-\*\*\***Take a video of your barely modified PiClock.**\*\*\*
-
-After you edit and work on the scripts for Lab 2, the files should be upload back to your own GitHub repo! You can push to your personal github repo by adding the files here, commiting and pushing.
-
-```
-(venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 2 $ git add .
-(venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 2 $ git commit -m 'your commit message here'
-(venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 2 $ git push
-```
-
-After that, Git will ask you to login to your GitHub account to push the updates online, you will be asked to provide your GitHub user name and password. Remember to use the "Personal Access Tokens" you set up in Part A as the password instead of your account one! Go on your GitHub repo with your laptop, you should be able to see the updated files from your Pi!
+[View the PiClock barebones Demo Video](https://drive.google.com/drive/folders/15jaOx7FTXAVyQ22ME3EiLU_qtOgM-fBe?usp=sharing)
 
 ## Now, make your own PiClock
 
-Do take advantage of having done the previous iteration to refine and simplify your design.
-
-** Insert any updates ideas, sketches, [Verplank diagrams](https://ccrma.stanford.edu/courses/250a-fall-2004/IDSketchbok.pdf))!, storyboards for your ideas **
-
-
-\*\*\***Put a copy of your code in your Lab 2 Github repo.**\*\*\*
-
-\*\*\***Take a video of your PiClock.**\*\*\*
-
+[View the PiClock code](progress_clock.py)
 
 As always, make sure you document contributions and ideas from others (and AI) explicitly in your writeup.
 
 You are permitted (but not required) to work in groups and share a turn in; you are expected to make equal contribution on any group work you do, and N people's group project should look like N times the work of a single person's lab.  Make sure the page for the group turn in is linked to your personal Interactive Lab Hub page. 
 
 
+## Idea Update
+
+Our updated idea is to create a clock that represents **time as progress** rather than displaying the current hour and minute. Instead of telling users the exact time, the clock helps them understand **how far they are through a meaningful period of time and how much time remains**.
+
+The clock has three states: **Today, This Week, and This Semester**. By default, the screen displays **Today**. Pressing the **top button** switches the display to **This Week**, while pressing the **bottom button** switches it to **This Semester**. **Pressing both buttons at the same time returns the display to Today.** This interaction allows users to quickly move between different scales of time.
+
+Each state follows the same visual structure. At the top of the screen, a title identifies the selected time period, such as **“TODAY,” “THIS WEEK,” or “THIS SEMESTER.”** Below the title, the clock displays the **percentage of the selected period that has already passed**, followed by a **progress bar** that visually represents that percentage. The progress bar gradually changes from **green to yellow** as the selected time period approaches its end. At the bottom, the clock shows the **remaining time**, such as the number of **hours left today** or the number of **days left in the week or semester**.
+
+The goal is to make time feel more **visual, contextual, and tangible**. Rather than functioning as a traditional clock, the display allows users to immediately understand where they are within the day, week, or semester and how much time they still have left.
+
+
+### Verplank diagrams Update
+
+Based on our updated concept and interaction design, we revised our Verplank diagram to reflect the three time-progress states and the button interactions of the final PiClock design.
+
+ Interaction Sketch ![Clock Concept Sketch](clock_sketch.jpg)
+ *Figure: Updated Verplank diagram for the Time as Progress PiClock.*
+
+## Video
+
+[View the PiClock Demo Video](https://drive.google.com/file/d/1eIPRVkOcaO76HwnGPQz10AnstmlGSCur/view?usp=drive_link)
