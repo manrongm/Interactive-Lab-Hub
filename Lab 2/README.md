@@ -243,7 +243,7 @@ For the barebones version, I focused only on showing the progress of one day. To
 
 ## Make a short video of your modified barebones PiClock
 
-[View the PiClock barebones Demo Video](https://drive.google.com/drive/folders/15jaOx7FTXAVyQ22ME3EiLU_qtOgM-fBe?usp=sharing)
+[View the PiClock barebones Demo Video](https://drive.google.com/file/d/1XArrm53nRL9w2wQQC07nSxpQ5ouQ_5Re/view?usp=sharing)
 
 ## Now, make your own PiClock
 
