@@ -10,6 +10,12 @@
 sounddevice~=0.5.2
 soundfile~=0.13.1
 numpy~=2.3
+opencv-python-headless~=4.11
+
+# MiniPiTFT ST7789 display
+Adafruit-Blinka==8.64.0
+adafruit-circuitpython-rgb-display==3.14.1
+pillow==11.3.0
 
 # --- speech to text (CTranslate2 backend) ---
 faster-whisper~=1.2

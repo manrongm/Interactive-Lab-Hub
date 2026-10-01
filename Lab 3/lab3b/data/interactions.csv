@@ -1,0 +1,22 @@
+timestamp,participant_id,user_present,transcript,detected_intent,system_response,response_time_seconds
+2026-09-30T22:20:28-04:00,P1,true,"I am cooking noodles, noodles too soft.",too_soft,Turn off the heat and remove the noodles from the pan so they do not keep cooking.,1.07
+2026-09-30T22:20:41-04:00,P1,true,I'll show you how to cook it.,unknown,"Sorry, I didn't understand that. Could you say it again?",0.88
+2026-09-30T22:20:53-04:00,P1,true,How long should I cook it?,cooking_time,"Usually a few minutes, but check the package because different noodles need different cooking times.",0.85
+2026-09-30T22:24:13-04:00,P1,true,"Hi, I'm cooking noodles. The noodles to dry.",noodles,Would you like stir-fried noodles or soup noodles?,1.00
+2026-09-30T22:25:08-04:00,P1,true,I'm cooking noodles. The noodles is too dry.,too_dry,Add a small amount of water or sauce and keep mixing.,1.14
+2026-09-30T22:25:19-04:00,P1,true,"Okay, how long should I cook the noodle?",cooking_time,"Usually a few minutes, but check the package because different noodles need different cooking times.",1.01
+2026-09-30T22:25:33-04:00,P1,true,"Okay, thank you.",unknown,"Sorry, I didn't understand that. Could you say it again?",0.84
+2026-09-30T22:25:53-04:00,P1,true,The bush won't use their left to know.,unknown,"Sorry, I didn't understand that. Could you say it again?",1.81
+2026-09-30T22:27:56-04:00,P1,true,,unknown,"Sorry, I didn't understand that. Could you say it again?",0.83
+2026-09-30T22:28:09-04:00,P1,true,Thank you.,unknown,"Sorry, I didn't understand that. Could you say it again?",0.78
+2026-09-30T22:32:08-04:00,P1,true,"I'm going to quit. I'll just hurt. Far again, choose him anyway.",unknown,"Sorry, I didn't understand that. Could you say it again?",8.48
+2026-09-30T22:40:51-04:00,P1,true,I hope you'll see you next time. I hope you'll see you next time.,unknown,"Sorry, I didn't understand that. Could you say it again?",1.27
+2026-09-30T22:41:03-04:00,P1,true,See you later.,unknown,"Sorry, I didn't understand that. Could you say it again?",0.83
+2026-09-30T22:41:17-04:00,P1,true,"I am cooking the noodles, the noodles are too dry.",too_dry,Add a small amount of water or sauce and keep mixing.,1.03
+2026-09-30T22:42:43-04:00,P1,true,"Hi, I am cooking noodles. The noodles are too dry.",too_dry,Add a small amount of water or sauce and keep mixing.,1.04
+2026-09-30T22:42:55-04:00,P1,true,How long should I cook the noodle?,cooking_time,"Usually a few minutes, but check the package because different noodles need different cooking times.",1.09
+2026-09-30T22:44:10-04:00,P1,true,I am making stir-fried noodles. Teach me how to do the stir-fried noodles.,stir_fried,"First, boil the noodles until they are almost cooked, then drain the water.",1.24
+2026-09-30T22:44:23-04:00,P1,true,What's next?,next_step,"Heat some oil in a pan, add your vegetables or meat, and stir-fry them first.",0.88
+2026-09-30T22:44:37-04:00,P1,true,How long should I cook the noodle?,cooking_time,"Usually a few minutes, but check the package because different noodles need different cooking times.",0.91
+2026-09-30T23:02:58-04:00,P1,true,I want to cook some noodle. I want to cook some noodles. What should I do?,noodles,Would you like stir-fried noodles or soup noodles?,1.16
+2026-09-30T23:03:13-04:00,P1,true,for a new dose.,unknown,"Sorry, I didn't understand that. Could you say it again?",4.63

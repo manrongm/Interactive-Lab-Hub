@@ -2,109 +2,14 @@
 
 **NAMES OF COLLABORATORS HERE**
 
-[![Watch the video](https://user-images.githubusercontent.com/1128669/135009222-111fe522-e6ba-46ad-b6dc-d1633d21129c.png)](https://www.youtube.com/embed/Q8FWzLMobx0?start=19)
-
-In this lab, we want you to design interaction with a speech-enabled device — something that listens and talks to you. This device can do anything *but* control lights (since we already did that in Lab 1). First, we want you to storyboard what you imagine the conversational interaction to be like. Then you will use wizarding techniques to elicit examples of what people might say, ask, or respond. We then want you to use the examples collected from at least two other people to inform the redesign of the device.
-
-We will focus on **audio** as the main modality for interaction to start; these general techniques can be extended to **video**, **haptics** or other interactive mechanisms in the second part of the Lab.
-
-A note on what you are building with. Speech interfaces are usually taught as two boxes — speech-in, speech-out — and that framing hides the part that actually determines whether an interaction works. Between listening and speaking sits the question of **whose turn it is**: when does the device decide you have finished talking, and how long does it make you wait before it answers? This lab gives you direct control over both, and we will ask you to notice what changes when you move them.
-
-## Prep for Part 1: Get the Latest Content and Pick up Additional Parts
-
-Please check instructions in [prep.md](prep.md) and complete the setup.
-
-### Pick up Web Camera If You Don't Have One
-
-Students who have not already received a web camera will receive their Webcam and at the beginning of lab. If you cannot make it to class this week, please contact the TAs to ensure you get these.
-
-### Get the Latest Content
-
-As always, pull updates from the class Interactive-Lab-Hub to both your Pi and your own GitHub repo.
-
-**\[recommended\]** Option 1: On the Pi, `cd` to your `Interactive-Lab-Hub`, pull the updates from upstream (class lab-hub) and push the updates back to your own GitHub repo. You will need the *personal access token* for this.
-
-```
-pi@ixe00:~$ cd Interactive-Lab-Hub
-pi@ixe00:~/Interactive-Lab-Hub $ git pull upstream Fall2026
-pi@ixe00:~/Interactive-Lab-Hub $ git add .
-pi@ixe00:~/Interactive-Lab-Hub $ git commit -m "get lab3 updates"
-pi@ixe00:~/Interactive-Lab-Hub $ git push
-```
-
-Option 2: On your own GitHub repo, create a pull request to get updates from the class Interactive-Lab-Hub. After you have the latest updates online, go to your Pi, `cd` to your `Interactive-Lab-Hub` and use `git pull`.
+Mandy Mao (mm3599)
 
 ---
 
 # Part 1
 
-## Setup
-
-Create and activate a virtual environment for this lab:
-
-```
-pi@ixe00:~$ cd Interactive-Lab-Hub/Lab\ 3
-pi@ixe00:~/Interactive-Lab-Hub/Lab 3 $ python3 -m venv .venv
-pi@ixe00:~/Interactive-Lab-Hub/Lab 3 $ source .venv/bin/activate
-(.venv) pi@ixe00:~/Interactive-Lab-Hub/Lab 3 $
-```
-
-Install the Python dependencies:
-
-```
-(.venv) $ pip install -r requirements.txt
-```
-
-This takes a few minutes. If you would like it to take considerably less time, [`uv`](https://docs.astral.sh/uv/) is a drop-in replacement for `pip` that is dramatically faster on the Pi:
-
-```
-(.venv) $ pip install uv && uv pip install -r requirements.txt
-```
-
-Then run the setup script, which installs the classic speech synthesizers, downloads the voice activity detection model, and pre-fetches a neural voice and a speech recognition model so you are not waiting on downloads during lab:
-
-```
-(.venv):~$ cd speech-scripts
-(.venv) $ ./setup.sh
-```
-
-Check your audio devices before going further. `arecord -l` lists capture devices and `aplay -l` lists playback devices; if your webcam microphone or Bluetooth speaker does not appear, fix that first — every script below assumes the system defaults are the ones you want.
 
 ## A. Text to Speech
-
-Your Pi can speak in several quite different ways, and the differences are audible in a way that matters for design. In `speech-scripts/` there are shell scripts for each.
-
-### The classic engines
-
-```
-(.venv) $ cd speech-scripts
-
-(.venv) $ sudo apt update
-(.venv) $ sudo apt install -y espeak festival festvox-kallpc16k
-
-(.venv) $ ./espeak_demo.sh
-(.venv) $ ./festival_demo.sh
-```
-
-You can run these `.sh` files by typing `./filename`, and read one with `cat filename`. You can also play audio files directly with `aplay filename` — try `aplay lookdave.wav`.
-
-These are all decades-old technology and they sound like it. `espeak-ng` is a *formant synthesizer*: it generates speech from an acoustic model of the vocal tract, which is why it sounds robotic but also why the whole thing fits in a couple of megabytes and responds instantly. `festival` is *concatenative*: they stitch together recorded fragments of a real speaker, which sounds more human but breaks audibly at the seams.
-
-### Neural TTS with Piper
-
-Note that the Piper command line changed in version 1.x — voices are now downloaded explicitly with `python3 -m piper.download_voices`, and you invoke it as `python3 -m piper`. Tutorials you find online may show the old `echo ... | piper --model ...` form, which no longer works. Browse the [voice samples](https://rhasspy.github.io/piper-samples) and download a different one if you'd like:
-
-```
-(.venv) $ python3 -m piper.download_voices en_US-lessac-medium
-```
-
-[Piper](https://github.com/OHF-Voice/piper1-gpl) synthesizes speech with a small neural network, runs comfortably on the Pi 5, and sounds markedly better than the above.
-
-```
-(.venv) $ ./piper_demo.sh
-```
-
-The demo script also shows `--output-raw`, which streams audio to the speaker as it is generated rather than writing a file first. Listen for the difference in how quickly speech begins. In a conversational system this gap is the thing your user experiences as responsiveness.
 
 \*\***Write your own shell file to use your favorite of these TTS engines to have your Pi greet you by name.**\*\*
 (This shell file should be saved to your own repo for this lab.)
@@ -117,22 +22,6 @@ The demo script also shows `--output-raw`, which streams audio to the speaker as
 
 ## B. Speech to Text
 
-We use [faster-whisper](https://github.com/SYSTRAN/faster-whisper), a reimplementation of OpenAI's Whisper model that runs several times faster on CPU and does not require PyTorch. All processing happens on the Pi; nothing is sent to a server.
-
-```
-(.venv) $ python transcribe.py lookdave.wav
-```
-
-The transcript is not the interesting output here — the timings are. Run it again with a larger model and compare:
-
-```
-(.venv) $ python transcribe.py lookdave.wav --model base.en
-(.venv) $ python transcribe.py lookdave.wav --model small.en
-#  noted that the first run may take longer because the model is downloaded, and that the HF unauthenticated-request warning is expected and not an error.
-```
-
-Available sizes, smallest first: `tiny.en`, `base.en`, `small.en`, `medium.en`. The `.en` variants are English-only and faster than their multilingual counterparts at the same size.
-
 \*\***Record a few seconds of your own speech (`arecord -d 5 -f cd -c 1 -r 16000 test.wav`) and transcribe it with at least two model sizes. Report the real-time factor for each. At what point does the accuracy improvement stop being worth the delay, for a system that has to answer you?**\*\*
 
 **Reflection**: I tested three Whisper model sizes using the same 5-second recording by saying "hello, my name is Mandy. How are you?" The tiny.en model was the fastest with a real-time factor of 0.21x, but it made one mistake and recognized my name “Mandy” as “Maggie.” The base.en model correctly recognized the full sentence and had a real-time factor of 0.40x. The small.en model was also correct, but its real-time factor was 1.18x, so it took longer than the audio itself. For an interactive system, I think base.en is the best balance. It was accurate enough, while small.en did not improve the result but added much more delay.
@@ -144,22 +33,6 @@ Available sizes, smallest first: `tiny.en`, `base.en`, `small.en`, `medium.en`. 
 
 
 ## C. Turn-taking: knowing when someone has stopped talking
-
-Everything so far has worked on fixed audio files. A real conversational device does not get told when to start and stop recording — it has to decide. This is the problem that makes speech interfaces hard, and it is mostly not a speech recognition problem.
-
-We use a **voice activity detector** (VAD) to segment the microphone stream into utterances. `listen.py` runs Silero VAD continuously and hands each detected utterance to faster-whisper:
-
-```
-(.venv) $ cd speech-scripts
-(.venv) $ python listen.py
-```
-
-Speak, pause, and watch it transcribe. Now change the endpointing threshold — the amount of silence the system requires before it decides your turn is over:
-
-```
-(.venv) $ python listen.py --min-silence 0.2
-(.venv) $ python listen.py --min-silence 1.5
-```
 
 \*\***Try both extremes, and something in between. Describe what each one feels like to talk to. Note specifically: at 0.2s, what kinds of normal speech get cut off? At 1.5s, what does the delay make the system seem like?**\*\*
 
@@ -206,9 +79,24 @@ For Part 2, you will redesign the interaction with the speech-enabled device usi
 ## Prep for Part 2
 
 1. What are concrete things that could use improvement in the design of your device? For example: wording, timing, anticipation of misunderstandings.
+
+In Part 1, I designed the assistant mostly for users who ask for the next cooking step. During the role-play, my partner also said the noodles were too dry. I did not plan this problem in my first dialogue. In Part 2, I want the assistant to answer this kind of unexpected cooking problem, and not only follow a fixed recipe.
+
+In Part 1, the interaction used mostly speech, so the user could not clearly see when the device was listening or thinking. In Part 2, I added screen messages for waiting, listening, thinking, and not understanding. The camera can start the interaction when it sees a user, so the user does not need to press a button.
+
+I also tested silence timing in Part 1. The 0.2 second setting cut my speech into parts, and the 1.5 second setting made the device feel slow. At that time, I chose about 0.7 seconds because it felt like a better balance. When I tested the complete Part 2 prototype, it still answered before I finished some sentences, so I increased the silence time to 1.3 seconds. The current prototype uses 1.3 seconds. I also want it to understand different ways to ask the same question, such as “What's next?” and “What should I do next?” If it do not understand, it should ask the user to repeat instead of giving a wrong cooking instruction.
+
 2. What are other modes of interaction *beyond speech* that you might also use to clarify how to interact? In particular: how does someone know when the device is listening, and when it is thinking? You have a screen and an LED.
+
+I use the screen to show the device state. When the camera waits for a person, the screen says “Waiting for someone...” When the camera sees a face, the device says the greeting and the screen says “Hi! I am listening.” When the device processes speech, the screen says “Thinking...” If it cannot understand the user, the screen says “I did not understand.” These messages help the user know when to speak and when to wait. The camera also starts the interaction without a button.
+
 3. Make a new storyboard, diagram and/or script based on these reflections.
+
+![storyboard](lab3b/IMG_2736.JPG)
+
 4. (optional) Integrate [input devices](inputs.md) in the system
+
+I didn't integrate input devices.
 
 ## Prototype your system
 
@@ -219,25 +107,50 @@ The system should:
 
 *Document how the system works.*
 
-*Include videos or screencaptures of both the system and the controller.*
+### How the System Works
+
+My prototype runs on a Raspberry Pi 5. A USB camera checks for a face, and the MiniPiTFT screen shows the current state. When the camera detects a face for several frames, the device displays “Hi! I am listening” and Piper says, “Hi, how can I help you today?” The device then listens to the USB microphone. Silero VAD waits for about 1.3 seconds of silence to decide that the user finished speaking. Faster Whisper changes the recording into text.
+
+The program checks the transcript for keywords and selects an intent. It supports noodles, stir-fried noodles, soup noodles, next step, adding noodles, noodles that are too dry or too soft, cooking time, repeat, and unknown requests. The assistant displays and speaks a response with Piper. For example, a “too dry” request makes the screen show “Tip: Add a little water or sauce.” The repeat intent says the previous assistant response again. If the program does not understand the transcript, it asks the user to repeat.
+
+The program records each recognized turn in `lab3b/data/interactions.csv`. The CSV includes the timestamp, participant ID, whether the user was present, transcript, detected intent, system response, and response time. The camera continues checking for a face during the conversation. If it does not confirm a face for about six seconds, the program shows “User left” and returns to “Waiting for someone...” The screen gives the user status feedback. The current intent detection uses keywords, so it can misunderstand speech that does not match the expected phrases.
+
+I included photos and test videos of the system. The TA confirmed that a separate controller is not required for this prototype.
+
+![screen prototype](lab3b/IMG_2730.JPG)
+![screen prototype](lab3b/IMG_2731.JPG)
+![screen prototype](lab3b/IMG_2732.JPG)
+![screen prototype](lab3b/IMG_2733.JPG)
+![screen prototype](lab3b/IMG_2734.JPG)
+![screen prototype](lab3b/IMG_2735.JPG)
+
 
 ## Test the system
 
 Try to get at least two people to interact with your system. (Ideally, you would inform them that there is a wizard *after* the interaction, but we recognize that can be hard.)
 
+Two tests:
+https://drive.google.com/file/d/1yu-eVVaYAzcJdoJHLIaL6gpTW7Wa008x/view?usp=sharing 
+
+https://drive.google.com/file/d/14qq4naJYGBuSkp4B7u666L5_ojMMnwuB/view?usp=sharing
+
 Answer the following:
 
 ### What worked well about the system and what didn't?
-\*\**your answer here*\*\*
+
+In the recorded tests, the camera started the conversation after it detected a face. The device played the greeting, showed the listening and thinking messages, and answered clear cooking questions. The CSV logger saved the transcript, intent, response, and response time. The tests also showed some problems. The camera sometimes lost a face or detected a face by mistake. Whisper made mistakes with unclear speech, and the keyword system did not understand every way of asking a question. The system worked better when the user spoke clearly and faced the camera.
 
 ### What worked well about the controller and what didn't?
-\*\**your answer here*\*\*
+
+The TA said a separate controller was not required, so I tested the automatic system instead. The system selected a response from the recognized words, and this made the interaction simple to run. However, the automatic system could not correct a transcript or choose a different response when it misunderstood the user. A human controller could help with these cases, but I did not use one in this prototype.
 
 ### What lessons can you take away from the WoZ interactions for designing a more autonomous version of the system?
-\*\**your answer here*\*\*
+
+In my Part 1 role-play, my partner said the noodles were too dry, even though my first script did not include this problem. This showed me that users do not always follow the dialogue I planned. A more autonomous assistant should understand different ways to say the same request and handle unexpected cooking problems. It should ask the user to repeat or clarify unclear speech instead of giving a wrong instruction. The system also needs enough silence time for a user to think, but it should not make the user wait too long. The screen should show when the device is listening or thinking.
 
 ### How could you use your system to create a dataset of interaction? What other sensing modalities would make sense to capture?
-\*\**your answer here*\*\*
+
+My program saves each interaction in a CSV file. It records the timestamp, participant ID, user presence, transcript, detected intent, system response, and response time. I can use this dataset to find which requests the system understands and which requests it misses. I can also compare response times and improve the intent keywords. In future tests, I could record speech start and end times, screen state changes, and when the camera detects a face. A temperature or weight sensor could also record information about the cooking process. I should ask participants for permission and avoid saving identifiable video or audio when it is not needed.
 
 <details>
   <summary><strong>Submission Cleanup Reminder (Click to Expand)</strong></summary>
