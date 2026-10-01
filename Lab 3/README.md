@@ -144,8 +144,6 @@ In the recorded tests, the camera started the conversation after it detected a f
 
 ### What worked well about the controller and what didn't?
 
-### What worked well about the controller and what didn't?
-
 The TA confirmed that a separate controller was not required for my prototype, so I did not use a human-operated controller in Part 2. Instead, the system automatically selected responses using keyword-based intent detection. This made the prototype easier to run and allowed the participant to interact with it without seeing another interface. However, this also removed the flexibility of a human wizard. If Whisper produced a wrong transcript or the user's request did not match one of my keywords, the system could not manually correct the mistake and often had to ask the user to repeat.
 
 ### What lessons can you take away from the WoZ interactions for designing a more autonomous version of the system?
