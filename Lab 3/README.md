@@ -134,6 +134,8 @@ https://drive.google.com/file/d/1yu-eVVaYAzcJdoJHLIaL6gpTW7Wa008x/view?usp=shari
 
 https://drive.google.com/file/d/14qq4naJYGBuSkp4B7u666L5_ojMMnwuB/view?usp=sharing
 
+One participant used the expected cooking phrases, so the keyword matching worked well. The other participant used a different wording for a request, and the system had more difficulty identifying the intent.
+
 Answer the following:
 
 ### What worked well about the system and what didn't?
@@ -142,7 +144,9 @@ In the recorded tests, the camera started the conversation after it detected a f
 
 ### What worked well about the controller and what didn't?
 
-The TA said a separate controller was not required, so I tested the automatic system instead. The system selected a response from the recognized words, and this made the interaction simple to run. However, the automatic system could not correct a transcript or choose a different response when it misunderstood the user. A human controller could help with these cases, but I did not use one in this prototype.
+### What worked well about the controller and what didn't?
+
+The TA confirmed that a separate controller was not required for my prototype, so I did not use a human-operated controller in Part 2. Instead, the system automatically selected responses using keyword-based intent detection. This made the prototype easier to run and allowed the participant to interact with it without seeing another interface. However, this also removed the flexibility of a human wizard. If Whisper produced a wrong transcript or the user's request did not match one of my keywords, the system could not manually correct the mistake and often had to ask the user to repeat.
 
 ### What lessons can you take away from the WoZ interactions for designing a more autonomous version of the system?
 
