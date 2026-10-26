@@ -1,10 +1,9 @@
 # Observant Systems: Overnight Sensation
 
-**Team:**
+**Members:** Wenqing Pan(wp273, Github: WenqingPan-Lucy ); 
 
-**Members:** Full Name (netid, github-handle), ...
+Mandy Mao(mm3599, Github:manrongm)
 
-**Project name:**
 
 <details>
 	<summary><strong>Instructions for Students (Click to Expand)</strong></summary>
@@ -19,241 +18,611 @@
 </details>
 
 
-For lab this week, we focus on creating interactive systems that can detect and respond to events or stimuli in the environment of the Pi, like the Boat Detector we mentioned in lecture. 
-Your **observant device** could, for example, count items, find objects, recognize an event or continuously monitor a room.
 
-This lab will help you think through the design of observant systems, particularly corner cases that the algorithms need to be aware of.
-
-**New this year: the AI runs on the Pi.** Your Pi 5 can run an object detector ([YOLO](https://docs.ultralytics.com/)) and a small language model ([Qwen](https://ollama.com/library/qwen3.5) through [Ollama](https://ollama.com)) completely offline. In Part 1 you get both running and connect them: YOLO *sees*, Qwen *reasons* about what was seen. These models are slow, but they have all night. In Part 2 you use them to design a **night-time interaction**: what you tell the device before bed, what it does while you sleep, and what it shows you when you wake up.
-
-**Please indicate anyone that helped with this Lab here.**
-Be generous in acknowledging their contributions! And also recognizing any other influences (e.g. from YouTube, Github, Twitter) that informed your design. 
-
-## Overview
-
-**Part 1: the tools**
-
-A) [Set up your Pi for on-device AI](#part-a)
-
-B) [See: recognize people in real time with YOLO](#part-b)
-
-C) [See more: hands and pose with MediaPipe](#part-c)
-
-D) [Reason: run Qwen on the Pi with Ollama](#part-d)
-
-E) [Connect: from YOLO readings to Qwen reasoning](#part-e)
-
-**Part 2: Overnight Sensation**
-
-F) [Read Part 2 and storyboard your night-time interaction](#part-f)
-
-G) [Design the interaction before bed](#part-g)
-
-H) [Incorporate the observant system during sleep](#part-h)
-
-I) [Design the interaction when awake](#part-i)
-
-The tools from earlier versions of this lab (MobileNet, Teachable Machine, Moondream, audio analysis, classic OpenCV) live in the [legacy folder](legacy/README.md). They are optional, but any of them can be the sensor in your Part 2 system.
-
-
-## Prep for Part 1
-
-Please check the instructions in [prep.md](prep.md) and complete them before lab. The installs in Part A take a while, so prep.md also tells you how to get a head start.
-
-## The Report
-
-This readme.md page in your own repository should be edited to include the work you have done. You can delete everything but the headers and the sections between the \*\*\***stars**\*\*\*. Write the answers to the questions under the starred sentences. Include any material that explains what you did in this lab hub folder, and link it in the readme.
 
 ---
 
 # Part 1
 
 ## Part A. 
-### Set up your Pi for on-device AI
 
-Create a virtual environment and install the requirements. They include `ultralytics` (YOLO), which pulls in torch, so this takes a while:
+We successfully installed YOLO26 and exported the nano model to NCNN format for running on the Raspberry Pi. We first tested object detection using the sample bus image.
 
-```
-pi@raspberrypi:~$ cd Interactive-Lab-Hub/Lab\ 5
-pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python3 -m venv .venv
-pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ source .venv/bin/activate
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ pip install -r requirements.txt
-```
+![YOLO Bus Detection](./runs/bus_test/bus.jpg)
 
-As in Lab 3, [`uv`](https://docs.astral.sh/uv/) is a much faster drop-in for `pip`: `pip install uv && uv pip install -r requirements.txt`.
+We then tested YOLO object detection on another image to observe how the model identifies objects in different scenes.
 
-### YOLO: download the nano model and export it for the Pi
+![YOLO Detection on Our Image](./runs/my_photo/snap.jpg)
 
-We use the nano model of [YOLO26](https://docs.ultralytics.com/models/yolo26/), exported once to NCNN, the format that runs fastest on the Pi. This downloads the weights, so you need internet:
-
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python -c "from ultralytics import YOLO; YOLO('yolo26n.pt').export(format='ncnn')"
-```
-If every ultralytics message is followed by a `--- Logging error ---` traceback ending in `UnicodeEncodeError: 'latin-1' codec can't encode character`, fix your shell's locale once::
-
-```
-echo 'export LANG=C.UTF-8' >> ~/.bashrc
-echo 'export LC_ALL=C.UTF-8' >> ~/.bashrc
-echo 'export PYTHONIOENCODING=utf-8' >> ~/.bashrc
-source ~/.bashrc
-```
-
-Test it on an image from the internet. `project=runs` keeps the output in this folder; without it, ultralytics writes to a `runs/` folder at the top of your git repo, where you will not think to look.
-
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ yolo predict model=yolo26n_ncnn_model source=https://ultralytics.com/images/bus.jpg project=runs
-```
-
-The result is in `runs/predict/bus.jpg`: boxes around the people and the bus.
-
-Now a photo of your own. Plug in the webcam and take one with `snap.py` (`--delay 3` gives you three seconds to get into the frame), or choose any picture you downloaded from the internet and put under this folder. Put your selected picture after the `source=` Then run the same command on it:
-
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python snap.py --delay 3
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ yolo predict model=yolo26n_ncnn_model source=snap.jpg project=runs
-```
-
-Every run gets its own numbered folder, so this one is in `runs/predict2/snap.jpg`; the command prints where it saved. Keep `snap.jpg`, you will show it to Qwen in Part D.
-
-### Ollama: install it and pull Qwen
-
-[Ollama](https://ollama.com) runs language models locally. Nothing leaves the Pi: no API key, no internet after the download.
-
-```
-pi@raspberrypi:~ $ curl -fsSL https://ollama.com/install.sh | sh
-pi@raspberrypi:~ $ ollama pull qwen3.5:0.8b
-pi@raspberrypi:~ $ ollama pull qwen3:0.6b
-pi@raspberrypi:~ $ ollama list
-```
-
-| model | download | what it does |
-|---|---|---|
-| `qwen3.5:0.8b` | ~1.3 GB | text **and images**; the one we use in this lab |
-| `qwen3:0.6b` | ~0.5 GB | text only, smaller and faster (~16 tokens/s on a Pi 5) |
 
 \*\*\***Include a screenshot of `ollama list` showing your models.**\*\*\*
 
+We installed Ollama and downloaded the two Qwen models required for this lab:
+
+- `qwen3.5:0.8b`
+- `qwen3:0.6b`
+
+The screenshot below shows the installed models using the `ollama list` command.
+
+![Ollama Model List](ollama_list.png)
+
 
 ## Part B. 
-### See: recognize people in real time with YOLO
 
-YOLO is an *object detector*: it finds every person, cup, cat and so on (the 80 [COCO](https://cocodataset.org/) classes), draws a box around each, and gives a confidence. For an observant system that is exactly what you want: *how many*, *where*, *how sure*.
 
-Connect your webcam, connect to your Pi through **VNC** (the script opens a window), and run the person detector. Read `yolo_person.py` first; the loop at the bottom is the whole idea.
+\*\*\***Include a short video or screenshots of your experiments with the person detection. Write down three situations where it did not see you, or saw a person who was not there, and what you think the cause was.**\*\*\*
 
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python yolo_person.py
-```
 
-While it runs, walk in and out of the frame, sit down, turn your back, turn the lights off, hold up a photo of a person on your phone. Watch the confidence number on the box change with each.
+I tested YOLO with my webcam using different commands and confidence thresholds. I also changed my position, showed different objects to the camera, and tested how the model performed under partial visibility, different distances, and low-light conditions.
 
-Then press q to quit and run it again with a flag. Each one changes a single thing:
+### 1. Default Detection
 
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python yolo_person.py --conf 0.2     # lower the bar: see what the model is unsure about
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python yolo_person.py --conf 0.7     # raise the bar: see what you lose
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python yolo_person.py --all          # all 80 classes, not only people: what else is on your desk, and what does it get wrong?
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python yolo_person.py --headless     # no window, only the printed readings: how it runs over ssh, and at night
-```
+**Actual Result:**
 
-\*\*\***Include a short video or screenshots of the person detection.**\*\*\*
+YOLO successfully detected people in real time and drew bounding boxes around them. The confidence scores changed as I moved or changed my position.
+
+Interestingly, when I showed only one of my arms to the camera while keeping the rest of my body outside the frame, YOLO still detected it as a person.
+
+I also showed a photo of a person on my phone, and YOLO identified the person in the photo.
+
+**Explanation:**
+
+YOLO does not always need to see a complete human body to detect a person. It can sometimes recognize a person based on limited visual features, such as a visible arm. This can be useful when someone is partially blocked or outside the camera's view.
+
+However, the model cannot reliably distinguish a real person from a person displayed on a screen.
+
+### 2. Lower Confidence Threshold (--conf 0.2)
+
+**Video:** [Low Confidence Detection](https://drive.google.com/file/d/1ZU4gx6UtopPDo3UMGfKiFwzsQH9XiFPY/view?usp=sharing)
+
+**Actual Result:**
+
+When I lowered the confidence threshold to 0.2, YOLO detected more objects as people. It incorrectly identified my backpack as a person with a confidence score of 0.44.
+
+**Explanation:**
+
+A lower confidence threshold allows more uncertain predictions to appear. This can help detect people that the model is less confident about, but it also increases the chance of false positives.
+
+In this case, the model probably confused some visual features of my backpack with those of a person.
+
+### 3. Higher Confidence Threshold (--conf 0.7)
+
+**Video:** [High Confidence Detection](https://drive.google.com/file/d/1AIAn09E9ksBDBHLNOCIpnf0wlVr2hLmT/view?usp=sharing)
+
+**Actual Result:**
+
+When I increased the confidence threshold to 0.7, YOLO no longer detected my backpack as a person. The model only displayed detections with higher confidence scores.
+
+I also tested the camera by pointing it toward people outside a glass window. When the people were farther away, YOLO failed to detect them as people.
+
+**Explanation:**
+
+The higher threshold filtered out the incorrect backpack detection because its confidence score was only 0.44.
+
+However, the higher threshold also increased the risk of missing real people. In the window experiment, the people appeared smaller in the camera frame, and the glass may have affected image clarity. These factors could have reduced the detection confidence below 0.7.
+
+This experiment shows the trade-off between reducing false positives and avoiding false negatives.
+
+### 4. Detect All Objects (--all)
+
+**Video:** [All Objects Detection](https://drive.google.com/file/d/1MkgUY2JSLbdKVTSeWhyiDp5hIs3KrosI/view?usp=sharing)
+
+**Actual Result:**
+
+YOLO correctly identified some objects, including a chair and a cell phone. However, it also incorrectly identified my headphones as a cell phone with a confidence score of 0.46.
+
+I noticed that objects farther away from the camera usually had confidence scores below 0.5.
+
+The detection was not always stable. For example, a chair in the background sometimes appeared and disappeared between frames, even though it was not moving.
+
+**Explanation:**
+
+The `--all` flag allows YOLO to detect all 80 COCO object classes instead of only people.
+
+However, the model can still confuse objects with similar visual features. Headphones are not a separate category in the standard COCO dataset, which may have contributed to the incorrect classification.
+
+Distant objects are also more difficult to recognize because they appear smaller and have fewer visible details.
+
+Small changes between frames can affect confidence scores. If the confidence drops below the threshold, the bounding box disappears even though the object remains in the scene.
+
+### 5. Headless Mode (--headless)
+
+**Actual Result:**
+
+The program ran without opening a camera window. Instead, it continuously printed detection results in the terminal, including the position, height, and confidence score of each detected person.
+
+**Explanation:**
+
+The `--headless` flag allows YOLO to run without a graphical interface.
+
+This is useful when running the program through SSH or when the Raspberry Pi needs to monitor the environment overnight without displaying the camera feed.
+
+### 6. Detection in a Dark Room
+
+**Actual Result:**
+
+I tested YOLO in a dark room with all the lights turned off.
+
+Surprisingly, YOLO was still able to detect a real person in all of my tests. It successfully identified the person when facing the camera, turning their back, and even when only part of their body was visible.
+
+However, the results were different when I showed a picture of a person on my phone.
+
+When I held the phone very close to the camera, YOLO could detect the person in the picture. But when I moved the phone farther away, it could no longer detect the person.
+
+**Explanation:**
+
+I think detection depends on how much visual information the camera can capture. Even though the room was dark, the camera still seemed to capture enough information to recognize a real person.
+
+For the picture on my phone, the person became smaller in the camera frame as I moved the phone farther away. This may have made it harder for YOLO to recognize human features. The screen brightness and surrounding lighting conditions might also have affected the results.
+
+This experiment suggests that YOLO can still work under some low-light conditions, but detection performance depends on distance, visibility, and the available visual information.
+
+**Possible Application:**
+
+Headless mode would be useful for an overnight observant system because the Raspberry Pi can monitor the environment without displaying a camera window.
+
+However, I would need to consider lighting conditions and detection errors before relying on the results.
+
+---
+
+### Detection Errors and Limitations
+
+#### Error 1: Backpack Detected as a Person
+
+![Error 1: Backpack Detected as a Person](./error1.png)
+
+When I used `--conf 0.2`, YOLO incorrectly detected my backpack as a person with a confidence score of 0.44.
+
+When I increased the threshold to 0.7, this false detection disappeared.
+
+**Possible Cause:**
+
+The model may have confused the backpack's shape with human features. The lower confidence threshold allowed this uncertain prediction to appear.
+
+Increasing the threshold removed the false positive, but it did not change the model's underlying classification ability.
+
+#### Error 2: Person in a Phone Photo Detected as a Real Person
+
+![Error 2: Person Detected in a Phone Photo](error2.png)
+
+I showed a picture of a person on my phone, and YOLO identified the person in the picture.
+
+**Possible Cause:**
+
+YOLO recognizes visual features associated with people, but it does not determine whether the detected person is physically present in the environment or displayed on a screen.
+
+Although detecting a person in a photograph is not necessarily incorrect for an object detection model, it could become a false alarm in a room-monitoring system.
+
+#### Error 3: Distant People Not Detected 
+
+![Error 3: Distant People Not Detected](./error3.jpg)
+
+When I used `--conf 0.7` and pointed the camera toward people outside a glass window, YOLO failed to recognize them as people.
+
+**Possible Cause:**
+
+The people were relatively far from the camera and appeared smaller in the image. This reduced the amount of visual detail available for detection.
+
+The glass window may also have affected image clarity through reflections or reduced contrast.
+
+Combined with the high confidence threshold of 0.7, these factors may have caused the detections to be filtered out.
+
+This shows that a high confidence threshold can cause the system to miss real people, especially when they are far away.
+
+#### Error 4: Headphones Detected as a Cell Phone (Misclassification)
+
+![Error 4: Headphones Detected as a Cell Phone](error4.png)
+
+When I used `--all`, YOLO incorrectly identified my headphones as a cell phone with a confidence score of 0.46.
+
+**Possible Cause:**
+
+The model may have confused their visual features. Headphones are not a separate class in the standard COCO dataset, so the model may have matched them to a category it already recognized.
+
+#### Additional Limitation: Unstable Detection of Distant Objects
+
+I noticed that distant objects usually had lower confidence scores, often below 0.5.
+
+For example, a chair in the background was sometimes detected, but its bounding box disappeared in the next frame even though the chair had not moved.
+
+**Possible Cause:**
+
+Distant objects appear smaller in the image, providing less visual information for the model.
+
+Small changes in camera frames or confidence scores may cause detections to appear and disappear, even when the environment remains unchanged.
+
+### Conclusion
+
+Through these experiments, I learned that YOLO can detect people even when only part of their body is visible, but it can also make mistakes when objects have similar visual features.
+
+I also observed that confidence thresholds significantly affect detection results. A lower threshold allows more detections but increases the risk of false positives, while a higher threshold filters out uncertain predictions but may miss real people.
+
+Distance and visibility also influence detection performance. Objects farther from the camera were generally harder to detect consistently.
+
+For an overnight observant system, I think it would be better to evaluate detections across multiple frames rather than treating every individual prediction as a real event. This could help reduce false alarms and make the system more reliable.
+
+
 
 
 ## Part C. 
-### See more: hands and pose with MediaPipe
-
-YOLO tells you that a person is there. Google's [MediaPipe](https://mediapipe.dev/) tells you what their hands and body are doing: face, hand and body pose detection, fast on the Pi.
-
-![Media pipe](Readme_files/mp.gif)
-
-The demo plays a looping audio file, so make the helper script executable first:
-
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ chmod +x loop_audio.sh
-```
-
-Connect your webcam, connect to your Pi through **VNC**, and run the hand pose script:
-(***it will not work if you use ssh from your laptop***)
-
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python hand_pose.py
-```
-
-Try the two main features of this script: 1) pinching for percentage control (the thumb-to-index distance sets the volume), and 2) "[Quiet Coyote](https://www.youtube.com/watch?v=qsKlNVpY7zg)" for instant percentage setting (the gesture mutes it). Notice how this example uses hardcoded positions and relates those positions with a desired set of events, in `hand_pose.py`: a hand is 21 landmark coordinates, and an *event* is a rule you write over them. That is the same job as `interpret()` in Part E.
-
-Consider how you might use this position based approach to create an interaction, and write how you might use it on either face, hand or body pose tracking.
 
 \*\*\***Include a screenshot or short video of the hand pose demo, and write how you might use face, hand or body pose tracking in your observant system.**\*\*\*
 
 
+I tested the MediaPipe hand tracking system using my webcam. I tried different hand gestures, distances, movements, and partial occlusion to see how well the system works.
+
+### 1. Pinch Gesture — Volume Control
+
+**Actual Result:**
+
+The volume changed when I moved my thumb and index finger closer together or farther apart. The system responded to the changes pretty smoothly, and I did not notice any obvious delay or jumping when I moved my hand quickly.
+
+However, I noticed that the distance between my hand and the camera also affected the volume. When I moved my hand farther away, the volume became lower, even though I kept exactly the same hand gesture.
+
+### 2. Quiet Coyote Gesture — Mute Control
+
+**Actual Result:**
+
+The Quiet Coyote gesture worked well when my hand was close to the camera. The system could recognize the gesture and mute the audio immediately.
+
+However, when I moved my hand farther away, around 30 cm or more, the system could not mute the audio immediately anymore. Sometimes it did not recognize the gesture correctly.
+
+### 3. Detection Errors and Limitations
+
+**Limitation 1: Distance Affects Volume Control**
+
+When I kept the same pinch gesture but moved my hand farther away from the camera, the volume decreased.
+
+I think this happened because the program calculates the distance between finger landmarks in the image, instead of measuring the actual physical distance between my fingers. This makes the volume depend on both my gesture and how far my hand is from the camera.
+
+One possible improvement would be to normalize the distance between the thumb and index finger by the overall size of the hand in the image, rather than using the raw pixel distance.
+
+**Limitation 2: Partial Occlusion Affects Pinch Detection**
+
+When I covered the last three fingers, the volume control did not work correctly anymore, even though my thumb and index finger were still visible.
+
+I think this happened because MediaPipe needs enough visible hand features to estimate the hand landmarks correctly. When some fingers were hidden, the model may have difficulty estimating the full hand position.
+
+**Limitation 3: Quiet Coyote Is Sensitive to Occlusion**
+
+I noticed that the Quiet Coyote gesture was even more sensitive to occlusion. When I covered even a small part of my fingers, the system could no longer recognize the gesture.
+
+This may happen because the program needs to check the positions of several fingers at the same time. If one of the important landmarks is blocked or estimated incorrectly, the gesture may not match the predefined rules.
+
+**Limitation 4: Recognition Becomes Less Reliable at Longer Distances**
+
+When my hand was around 30 cm or farther from the camera, the Quiet Coyote gesture became less responsive.
+
+I think this is because the hand takes up fewer pixels in the image, making the finger landmarks harder to estimate accurately.
+
+### 4. Possible Application in My Observant System
+
+I could use hand gestures to control an overnight monitoring device. For example, I could use a specific hand gesture to start the system before going to bed, instead of pressing a button or typing a command.
+
+When I wake up, I could use another gesture to stop monitoring and ask the device to show a summary of what happened overnight.
+
+However, based on my tests, I think the camera should be placed close enough to the user, and the gestures should be simple. I would also avoid gestures that require very precise finger positions because they may not work well when the hand is far away or partially blocked.
+
+To make the interaction more reliable, the system could require a gesture to be detected consistently for a few consecutive frames before triggering an action. This could help prevent accidental activation or deactivation caused by temporary detection errors.
+
+### 5. Demo
+
+**Video:** [MediaPipe Hand Pose Demo](https://drive.google.com/file/d/1P7_zJDgPw1eoyUCjfTD4EgkEx6yU9rpw/view?usp=sharing)
+
+
 ## Part D. 
-### Reason: run Qwen on the Pi with Ollama
-
-Talk to the model in the terminal first. Qwen3 models "think" before they answer, which is slow on a Pi, so turn it off. Then ask about something you can check:
-
-```
-pi@raspberrypi:~ $ ollama run qwen3.5:0.8b
->>> /set nothink
->>> Tell me a bit about the history of Roosevelt Island. Three sentences.
->>> /bye
-```
-
-Roosevelt Island is a good first question because you know the ground truth: it was Blackwell's Island, then Welfare Island, got its current name in 1973, and Cornell Tech opened on it in 2017. Count how many of the model's facts are true.
-
-From Python it is a dozen lines with `requests`; `ask_qwen.py` is that script. It turns thinking off, tells the model to answer in at most three sentences, and cuts it off after 120 tokens (`--max-tokens` changes that), because a small model left alone writes an essay. Read it, then run:
-
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python ask_qwen.py "Tell me a bit about the history of Roosevelt Island."
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python ask_qwen.py --model qwen3:0.6b "Tell me a bit about the history of Roosevelt Island."
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python ask_qwen.py --image snap.jpg "What is in this photo?"
-```
-
-Things in the [Ollama API](https://github.com/ollama/ollama/blob/main/docs/api.md) worth knowing:
-
-* `think: false` skips the reasoning trace. Always, on a Pi. `ask_qwen.py` sends it on every request; `--think` turns the trace back on for one question, so you can see what you are skipping and how long it takes.
-* `format` makes the model answer as JSON with the fields you name (`--json`). Handy when a display or a servo has to read the answer.
-* `images` sends a photo along with the prompt (`--image snap.jpg`, the photo from Part A). `qwen3.5:0.8b` can look at pictures.
-
-A 0.8B model is slow and sometimes wrong. It will invent events that are not in the data and agree with a wrong premise. Give it the data, keep its job narrow, and decide what the device does when the model is unsure.
 
 \*\*\***Ask Qwen three questions to answer. Paste the questions, the answers and how long each took. Try one of them with `qwen3:0.6b` and compare.**\*\*\*
 
-<details>
-  Q&A here
-</details>
+I tested two Qwen models locally on my Raspberry Pi using Ollama. I first asked them about Roosevelt Island, and then tested three questions that a bedside device might need to answer.
+
+### 1. Roosevelt Island History Test
+
+**Qwen3.5:0.8b Response:**
+
+> Roosevelt Island was originally built by immigrants from New York to escape the harsh winters and poor conditions of Manhattan, with its first concrete structure appearing in 1895. The island has remained largely unchanged since then, serving as a quiet refuge for families seeking peace while preserving its historic architecture and waterfront views.
+
+**Response Time:** 92.1 seconds
+
+**Qwen3:0.6b Response:**
+
+> Roosevelt Island is a small island in the Pacific Ocean, located in the state of New Jersey, USA. It was established in 1907 as a temporary refuge for the United States Navy during World War I. The island was initially used as a military base and later became a significant cultural and historical site. Today, it is a peaceful retreat for the community, preserving its natural beauty and historical significance.
+
+**Response Time:** 57.7 seconds
+
+**Observation:**
+
+Both models gave incorrect historical information. Qwen3.5 invented a story about immigrants building the island, while Qwen3 even placed Roosevelt Island in the Pacific Ocean and New Jersey. The smaller model was faster in this test, but neither answer was accurate.
+
+### 2. Bedside Device Questions
+
+**Question 1: What should I do if I cannot fall asleep? Give me three simple suggestions.**
+
+**Model:** Qwen3.5:0.8b
+
+**Answer:**
+
+> 1. Try to relax your muscles and take a deep breath to calm your mind.
+> 2. Listen to soothing music or read a quiet book to distract yourself from the noise.
+> 3. Drink a glass of warm water to help clear your head and improve sleep quality.
+
+**Response Time:** 60.2 seconds
+
+**Observation:**
+
+The model gave three simple suggestions, and most of them seemed reasonable. However, the response took about a minute, which may be too slow for a device that needs to respond immediately.
+
+**Question 2: A person entered the room at 11 PM and left at 11:15 PM. What happened? Answer in one sentence.**
+
+**Model:** Qwen3.5:0.8b
+
+**Answer:**
+
+> The person likely slept, as they stayed awake only for a brief moment during their sleep cycle.
+
+**Response Time:** 32.0 seconds
+
+**Observation:**
+
+This answer was incorrect. I only told the model that someone entered and left the room, but it assumed the person was sleeping. This shows that Qwen can make up events that are not included in the input data.
+
+**Question 3: My camera did not detect anyone between midnight and 6 AM. Does that prove nobody entered the room?**
+
+**Model:** Qwen3.5:0.8b
+
+**Answer:**
+
+> No, this does not prove nobody entered the room; it simply means no one was detected during that specific time window.
+
+**Response Time:** 29.5 seconds
+
+**Observation:**
+
+The model answered correctly. It understood that no detection does not necessarily mean nobody entered the room. This is important because the camera or object detection model could miss someone.
+
+### 3. Model Comparison
+
+I tested Question 3 again using the smaller `qwen3:0.6b` model.
+
+**Qwen3:0.6b Answer:**
+
+> The device detected no movement between midnight and 6 AM, which could indicate an absence of people, but it's not certain. The camera's performance may vary, and other factors like lighting or movement patterns could also play a role.
+
+**Response Time:** 44.1 seconds
+
+**Comparison:**
+
+Both models understood that the absence of detection does not prove that nobody entered the room. The smaller model gave a longer answer and mentioned possible issues like lighting and camera performance. However, it also described the input as "no movement," even though the question only said no people were detected.
+
+Qwen3.5 took 29.5 seconds, while Qwen3 took 44.1 seconds. So even though Qwen3 is smaller, it was actually slower in this test.
+
+### 4. Image Understanding Test
+
+**Question:** What is in this photo?
+
+**Qwen3.5:0.8b Answer:**
+
+> A young woman wearing glasses and a dark shirt is taking a selfie in an office setting with bright fluorescent lighting.
+
+**Response Time:** 123.8 seconds
+
+**Observation:**
+
+The model was able to generate a description of the image, but it took more than two minutes. I did not independently verify every detail of the description. The long response time shows that image understanding can be expensive for a small model running locally on the Pi.
+
+### 5. What I Learned
+
+I found that both Qwen models could answer simple questions, but they sometimes generated information that was not supported by the input. The Roosevelt Island test and the room entry question showed this problem clearly.
+
+I also noticed that the models were quite slow on the Raspberry Pi, especially when processing an image. For my overnight observant system, I think it would be better to let the device collect data during the night and ask Qwen to summarize it in the morning, instead of expecting an immediate response.
+
+I would also give the model specific detection logs and ask it to only use the information provided, so it does not make up events that never happened.
 
 
 ## Part E. 
-### Connect: from YOLO readings to Qwen reasoning
 
-An observant system is a pipeline: a **detector** turns pixels into boxes, an **interpreter** turns boxes into readings in words ("one person, left, close"), the readings pile up in a **log**, and a **reasoner** answers a question about the log. The language model never sees pixels, only the words you chose in the interpreter. That makes the interpreter the most important design decision in the system.
+In this part, I connected YOLO with Qwen to build an observant system. YOLO detected people and objects through the webcam, the interpreter converted the detections into text, and Qwen used the saved logs to answer questions.
 
-`yolo_to_qwen.py` is the pipeline in one file, one function per stage. Read it before you run it:
+I tested the pipeline four times with different questions and settings. I also modified the `interpret()` function to make the logs more clear.
 
-* `interpret(r)` is the interpreter. It takes one YOLO result and returns one reading. A person is *left*, *center* or *right* by which third of the frame the middle of their box is in, and *close* if the box is taller than 60% of the frame, *far* otherwise. The reading is a string like `1 person(s) at center/close`, or `nobody`. Fifteen lines, and they decide everything the model can know.
-* `watch(seconds)` is the detector and the log. Twice a second it reads a frame, runs YOLO on it and calls `interpret()`. A time-stamped reading goes into the log **only when it differs from the previous one**, so a minute of sitting still is one line, not 120.
-* `ask(log, question)` is the reasoner. It pastes the log and your question into one prompt, tells Qwen to answer in at most three sentences using only what is in the log, and sends it to Ollama with thinking off.
+### Run 1: Original Pipeline — Person Detection
 
-Run it through VNC and a window opens with YOLO's boxes, the current reading and the seconds left. Press q to stop watching early. Over plain ssh add `--headless` and you get the same thing minus the window.
+**Command:**
 
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python yolo_to_qwen.py
+```bash
+python yolo_to_qwen.py
 ```
 
-It watches for a minute, saves the log to `watch_log.txt` and asks Qwen the default question. The terminal looks something like this:
+**Log:**
 
+```text
+20:13:39 nobody
+20:13:50 1 person(s) at right/close
+20:13:51 1 person(s) at center/close
+20:14:01 1 person(s) at center/far
+20:14:21 1 person(s) at right/far
+20:14:26 1 person(s) at center/far
+20:14:27 1 person(s) at left/far
 ```
-14:02:11 nobody
-14:02:19 1 person(s) at right/far
-14:02:24 1 person(s) at center/close
-14:02:51 nobody
 
-4 lines saved to watch_log.txt
-asking Qwen...
+**Question:**
 
-Qwen (18.4 s):
-One person came in from the right, moved close to the camera, and left after about half a minute. ...
+How many people were there, what were they doing, and did anything change?
+
+**Qwen Answer:**
+
+> There was only one person present throughout the entire 60-second observation period. They were standing near a center/close position for the majority of the time, but their location shifted to right/far and then left/far at specific intervals. No significant change in activity occurred; the camera simply recorded the sequential movements of that single individual.
+
+**Response Time:** 32.5 seconds
+
+**Accuracy: Partially Correct**
+
+Qwen correctly noticed that the detected person's position changed. However, it said one person was present during the entire observation, even though the first log entry was `nobody`. It also said the person was standing most of the time, but the log did not record whether the person was standing or sitting.
+
+I think Qwen made some assumptions based on the positions instead of only using the information in the log.
+
+### Run 2: Asking a Different Question
+
+**Command:**
+
+```bash
+python yolo_to_qwen.py --log watch_log_run1.txt --question "Did anyone leave the room?"
 ```
+
+For this test, I reused the log from Run 1 but changed the question.
+
+**Log:**
+
+Same as Run 1 (`watch_log_run2.txt`).
+
+**Question:**
+
+Did anyone leave the room?
+
+**Qwen Answer:**
+
+> No one is explicitly stated to be leaving the room; however, the presence of multiple people at various distances (center, right, left, and far) throughout the 60-second interval indicates that activity occurred within the space. The absence of a "nobody" line suggests no one was absent from the room during this period.
+
+**Response Time:** 13.2 seconds
+
+**Accuracy: Partially Correct**
+
+Qwen correctly said the log did not explicitly show anyone leaving the room. However, it made two mistakes.
+
+First, it said there were multiple people, but the log only showed one person in each detection. Second, it said there was no `nobody` entry, even though the first line clearly showed `nobody`.
+
+This showed me that changing the question can lead to different conclusions, even when the input log is exactly the same.
+
+### Interpreter Modification
+
+After Runs 1 and 2, I modified the `interpret()` function because Qwen sometimes misunderstood the original log format.
+
+**Original Output:**
+
+```text
+nobody
+1 person(s) at center/close
+```
+
+**Modified Output:**
+
+```text
+No person detected in the current camera frame.
+Current frame: 1 person detected at center/close.
+```
+
+I also changed the output format when multiple people are detected, so the log describes the number of people in the current frame more clearly.
+
+**Why I Changed It:**
+
+I wanted the log to describe what the camera actually detected, instead of making statements about the whole room. For example, `nobody` could be interpreted as nobody being in the room, while `No person detected in the current camera frame` is more specific.
+
+I also wanted to make it clear that each line represents a detection at a particular time, not the identity or movement history of a person.
+
+I kept the original position and distance rules, so the main change was how the interpreter described the results.
+
+### Run 3: Testing the Modified Interpreter
+
+**Command:**
+
+```bash
+python yolo_to_qwen.py --headless --seconds 60 --question "How many people were detected, and did anyone leave the camera view?"
+```
+
+**Log:**
+
+```text
+20:38:07 No person detected in the current camera frame.
+20:38:14 Current frame: 1 person detected at right/far.
+20:38:15 Current frame: 1 person detected at center/far.
+20:38:20 Current frame: 1 person detected at center/close.
+20:38:31 Current frame: 1 person detected at left/close.
+20:38:36 Current frame: 1 person detected at left/far.
+20:38:40 Current frame: 1 person detected at center/far.
+20:38:44 Current frame: 1 person detected at right/far.
+20:38:59 Current frame: 1 person detected at right/close.
+20:39:00 Current frame: 1 person detected at center/close.
+```
+
+**Question:**
+
+How many people were detected, and did anyone leave the camera view?
+
+**Qwen Answer:**
+
+> The detector recorded a total of 1 person across all six frames, indicating that no one left the room; however, the log explicitly states "No person detected" at the very beginning of the recording. Therefore, while the count remains constant, the initial reading was for an empty frame.
+
+**Response Time:** 19.4 seconds
+
+**Accuracy: Partially Correct**
+
+This time, Qwen correctly noticed that the first entry showed no person detected. It also recognized that the later entries each showed one person.
+
+However, it said there were only six frames, even though the log contained ten entries. Also, the log only records changes in detection results, not every camera frame.
+
+Qwen also concluded that nobody left the room, but the camera data cannot really prove that. It only shows whether a person was detected in the camera view.
+
+The modified interpreter made the log more specific, but Qwen still made some incorrect assumptions.
+
+### Run 4: Detecting All Objects
+
+**Command:**
+
+```bash
+python yolo_to_qwen.py --headless --seconds 30 --all --question "What objects were detected, and did their positions change?"
+```
+
+**Log:**
+
+```text
+20:43:06 Current frame: 1 person detected at center/far.
+20:43:11 Current frame: 1 person detected at center/far. Other detected objects: cell phone
+20:43:18 Current frame: 1 person detected at center/far.
+20:43:20 Current frame: 1 person detected at center/far. Other detected objects: bottle
+20:43:24 Current frame: 1 person detected at center/far.
+20:43:29 Current frame: 1 person detected at center/far. Other detected objects: cell phone
+20:43:34 Current frame: 1 person detected at center/far.
+```
+
+**Question:**
+
+What objects were detected, and did their positions change?
+
+**Qwen Answer:**
+
+> The camera detected a single person at the center of the frame throughout the 30-second period. No other objects were identified in the log. Consequently, no positions changed for any detected object.
+
+**Response Time:** 8.5 seconds
+
+**Accuracy: Partially Correct**
+
+Qwen correctly identified that the person stayed at `center/far` in the recorded readings. However, it completely missed the other detected objects.
+
+The log clearly showed `cell phone` twice and `bottle` once, but Qwen said no other objects were identified.
+
+Also, the interpreter only recorded the names of other objects, not their positions. So Qwen did not have enough information to determine whether the phone or bottle moved.
+
+This test showed two different problems. Qwen sometimes ignores information that is already in the log, and the interpreter also limits what information Qwen can use.
+
+### What I Learned
+
+From these experiments, I found that connecting YOLO with Qwen allows the Raspberry Pi to detect changes in the environment and generate summaries from the logs. However, the answers were not always accurate.
+
+Sometimes Qwen missed information that was clearly recorded, and sometimes it made assumptions that the camera data did not support.
+
+I also learned that the interpreter is important because it decides what information gets passed to Qwen. After I changed the descriptions to focus on the current camera frame, the logs became more specific. However, this did not completely prevent incorrect answers.
+
+For my overnight observant system, I think the device should record clear observations and avoid treating Qwen's interpretation as a confirmed fact.
+
+**Modified Pipeline:**
+- [yolo_to_qwen.py](yolo_to_qwen.py)
+
+**Experiment Logs:**
+- [Run 1 — Original Pipeline](watch_log_run1.txt)
+- [Run 2 — Different Question](watch_log_run2.txt)
+- [Run 3 — Modified Interpreter](watch_log_run3.txt)
+- [Run 4 — All Object Detection](watch_log_run4.txt)
+
 
 ---
 
