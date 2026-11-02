@@ -625,101 +625,254 @@ For my overnight observant system, I think the device should record clear observ
 
 
 ---
-
 # Lab 5 Part 2: Overnight Sensation
 
-For Part 2, you will use the observant system from Part 1 to design a night-time interaction. On-device AI is slow, so let it work while you sleep. The person meets the device twice: **before bed**, when they hand the night over, and **when awake**, when the device gives something back. In between, the pipeline from Part E runs on its own.
-
-Two flavors, pick one or mix them:
-
-* **Sense all night.** The Pi watches, listens or measures from bedtime until morning and keeps a log.
-* **Process all night.** You already have the data (a day of phone photos, a long recording) and the Pi needs hours to get through it.
-
-Two house rules. Sample rather than stream: one look every 5 to 30 seconds is plenty, and it keeps the Pi cool. And keep everything on the Pi: tell the people you live with, point the camera at things rather than at beds, and delete the snapshots after the demo.
 
 ## Part F. 
-### Read Part 2 and storyboard your night-time interaction
 
-Storyboard a night-time interaction built on your observant system, in three panels:
+### 1. Initial Idea — Desk Guardian
 
-1. **Before bed.** How does the person hand the night over, and how does the device acknowledge it?
-2. **While asleep.** What does the device watch or work through?
-3. **When awake.** What is the one thing the person learns, and in what medium?
+Our idea is to build a small overnight monitoring device called Desk Guardian. It uses a Raspberry Pi and a webcam to observe the desk area while the user is sleeping.
 
-Stuck? A kitchen that tells you who raided the fridge. A desk that reports whether you actually went to bed. A window that names the quietest hour. A plant that describes its night. Find something better.
+The device uses YOLO to detect people near the desk and saves the observations with timestamps. In the morning, Qwen reads the log and generates a short report.
 
-Use storyboards and/or [Verplank diagrams](https://ccrma.stanford.edu/courses/250a-fall-2004/IDSketchbok.pdf).
+We want the system to help users understand if there was any activity around their desk during the night, without needing to watch the camera recordings themselves.
+
+### 2. Initial Storyboard
+
+**Panel 1 — Before Bed**
+
+Before going to bed, the user presses a button to start monitoring. The device shows a confirmation message, so the user knows it has started working.
+
+**Panel 2 — During the Night**
+
+The Raspberry Pi uses YOLO to check the desk area every 15 seconds. The interpreter converts the detections into text and saves them with timestamps. The system works automatically while the user sleeps.
+
+**Panel 3 — In the Morning**
+
+When the user wakes up, they request the overnight report. Qwen summarizes the recorded observations. The device shows a short report about when people were detected near the desk.
+
 
 \*\*\***Insert ideas, sketches, Verplank diagrams and storyboards for your night-time interaction here.**\*\*\*
 
+![Initial Storyboard](storyboard1.png)
+
+
 ## Prep for Part 2
 
-1. Look at and give feedback on the Part F storyboards.
-   **Put the feedback for your ideas here.**
-2. [Update your Lab Hub](prep.md#get-the-latest-content) to get the latest content for Part 2.
-3. Decide where the device will spend the night and who else lives there. Get their OK before the first run.
-4. Revise your storyboard with the feedback and with what you learned in Part E about where the pipeline breaks.
+ **Put the feedback for your ideas here.**
+ 
+### 3. Feedback and Design Revision
+
+**Feedback 1 — Starting Interaction**
+
+*The button is easy to use, but it is not very clear whether the device is still monitoring after the first confirmation. A small status light or message could help.*
+
+**Feedback 2 — Morning Report**
+
+*A short summary is useful, but it would be easier to understand if the user could also see when the activity happened. A simple timeline might be better than only showing text.*
+
+**Feedback 3 — Privacy and Accuracy**
+
+*It would be better if the camera only monitored the desk, instead of the whole room. The morning report should also mention that some detections might be wrong.*
+
+### 4. Revised Storyboard
+
+Based on the feedback, we revised all three panels to improve the clarity of the interaction, protect user privacy, and make the morning report easier to understand.
+
+**Panel 1 — Before Bed: Start & Confirm**
+
+Before going to bed, the user presses a button labeled "Start Night Mode." The device displays "Night Mode Active" and turns on a dim green LED to indicate that monitoring is active.
+
+**Reason for Revision:** To make it clear that the device has successfully started and is still monitoring.
+
+**Panel 2 — During the Night: Monitor Desk Area**
+
+The webcam only monitors the desk area. YOLO checks for people every 15 seconds, and the system converts the detections into timestamped text logs.
+
+**Reason for Revision:** To limit the monitoring area and reduce unnecessary privacy concerns.
+
+**Panel 3 — In the Morning: Timeline + Summary**
+
+When the user wakes up, they view the overnight report. The report first displays a timeline showing when people were detected, followed by a short summary generated by Qwen.
+
+The report also reminds the user that AI detections may not always be accurate.
+
+**Reason for Revision:** To improve readability and reduce the risk of users placing too much trust in AI-generated results.
+
+**Revised Storyboard:**
+
 
 \*\*\***Post your revised storyboard here.**\*\*\*
+
+![Revised Storyboard](storyboard2.jpg)
 
 ## Part G. 
 ### Design the interaction before
 
-The hand-off: the person tells the device what to watch tonight, and the device acknowledges it. Keep it to a thirty-second ritual. A button or a touch (Lab 4), a spoken sentence (Lab 3), a wave or a Quiet Coyote at the camera (Part C). The acknowledgement can be a line on the display, a tone, or an LED that dims rather than lights up. At its simplest, the hand-off just sets the question that the morning will answer.
+\*\*\***Describe the interaction before.**\*\*\*
+
+For Desk Guardian, we created a simple interface with a **Start Night Mode** button.
+
+Before going to sleep, the user clicks the button to activate overnight monitoring. The device displays **"Night Mode Active"** to confirm that the system has started.
+
+The system then uses YOLO to check for people near the desk every 15 seconds and saves timestamped observations in `night_log.jsonl`. The goal is to answer one question the next morning: **"Was anyone detected near my desk overnight, and when?"**
+
+We also added a **Stop Monitoring** button so the user can stop the system when needed.
+
+We chose buttons instead of hand gestures because our tests in Part C showed that gesture recognition was sometimes unreliable when the user's hand was far from the camera. Buttons provide a simpler and more reliable way to control the system.
+
+The entire bedtime interaction takes only a few seconds, keeping the hand-off simple and easy to use.
+
+
+
+
+
+
+
+
+## Part G. 
+### Design the interaction before
 
 \*\*\***Describe the interaction before.**\*\*\*
 
+For Desk Guardian, we created a simple interface with a Start Night Mode button.
+
+Before going to sleep, the user clicks the button. The device shows "Night Mode Active" and starts the overnight monitoring program.
+
+The system uses YOLO to detect people around the desk every 15 seconds. It saves the observations with timestamps in night_log_test.jsonl.
+
+We also added a Stop Monitoring button so the user can stop the system. We chose buttons because our hand gesture tests in Part C were sometimes unreliable when the hand was far away from the camera.
+The bedtime interaction only takes a few seconds.
+
+
+
+
 ## Part H. 
-### Incorporate the observant system
 
-The Part E pipeline becomes the night shift. `overnight.py` runs your `interpret()` from `yolo_to_qwen.py` every few seconds, people only unless you pass `--all`, and writes the readings to `night_log.jsonl`; the reasoning waits for the morning. Start it inside `tmux` so it keeps running after you close your laptop, and stop it with Ctrl-C in the morning:
+We used overnight.py to monitor the desk area with YOLO. The program checks the camera every 15 seconds and uses our modified interpret() function to convert detections into text. It only saves the readings when the detection result changes. We also removed the automatic screenshot feature for privacy.
 
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ tmux new -s night
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python overnight.py
-```
+### 1. Fake Night Test
 
-Fake a night first: run it for thirty seconds while you walk around, stop it, and run `morning.py` from Part I. When that looks right, run a real night. If your storyboard needs a sensor rather than the camera, swap in the Lab 4 example code and log its reading the same way.
+We first tested the system for about 30 seconds. We walked in and out of the camera view, and the program recorded the changes in night_log_fake_30s.jsonl.
 
-\*\*\***Screenshots or videos of the running system.**\*\*\*
+We also ran morning.py with the test log. Qwen generated a morning report, but sometimes it gave incorrect timestamps or assumed different detections were different people.
+
+![Fake Screenshot](fake1.png)
+
+### 2. Real Overnight Test
+
+We ran the program inside tmux overnight, from October 29 at 10:59 PM to October 30 at 8:50 AM.
+
+The system recorded 15 detection changes and 59 heartbeats during about 9 hours and 51 minutes.
+
+Most detection changes happened around 11 PM. The last detection before the long quiet period was at 11:17 PM, when no person was detected. The next change was at 8:50 AM, when one person appeared in the camera view.
+
+### 3. Observations and Problems
+
+One interesting thing was that the system did not record new detection changes for several hours, but it continued writing heartbeats every 10 minutes. This helped us confirm the program was still running.
+
+We also noticed that the camera sometimes detected a person at different positions or distances within a short time. Since YOLO can make detection errors, we cannot assume all these changes represent actual movements. The system also cannot prove nobody was there just because no person was detected.
+
+### Screenshots of Running System:
+
+![Running System Screenshot](./running.png)
+
+### Overnight Log:
+
+[View Overnight Log](logs/night_log_real_2026-10-29_to_30.jsonl)
 
 ## Part I. 
-### Design the interaction after
+### 1. Design Idea
 
-The reveal. The night produced a log; the morning turns it into something a half-awake person can take in. `morning.py` is the smallest version: it asks Qwen for a three-sentence report.
+For the morning reveal, we created a system that shows users what their Desk Guardian detected overnight.
 
-```
-(.venv) pi@raspberrypi:~/Interactive-Lab-Hub/Lab 5 $ python morning.py
-```
+We first used the professor's morning.py to generate a three-sentence report with Qwen. However, we wanted to make the results easier to understand and more interactive. So we created a graphical dashboard and also displayed the report on the Mini PiTFT.
 
-Make it yours: show the report on the Mini PiTFT, read it aloud with Piper from Lab 3, plot the night as a timeline, or ask for JSON (`--json`, Part D) and move a servo. Whatever you pick, make sure it is honest about a night in which nothing happened.
+The user can check the overnight results without reading the original JSON log.
 
-## Final documentation
+### 2. Morning Reveal on Desktop
 
-Document all the prototypes and iterations you have designed and worked on. The deliverables for this lab are writings, sketches, photos, and videos that show what your system:
+We created morning_reveal.py using Tkinter. The interface shows four main statistics: monitoring duration, detection changes, person-present readings, and heartbeats.
 
-* "Looks like": how the device sits in the room at night, and what it looks like at bedtime and in the morning.
-* "Works like": the pipeline from detector to interpreter to log to reasoner, with a real night's data.
-* "Acts like": how a person hands the night over and what they get back.
+We also added a main takeaway, a detection timeline, and a Qwen-generated summary.
 
-\*\*\***Include a short video of the whole system**\*\*\*
+The detection timeline directly reads the timestamps and observations from night_log.jsonl. This allows users to compare the AI summary with the actual detection records.
 
-As always, make sure you document contributions and ideas from others (and AI) explicitly in your writeup.
+We included a note about detection limitations because YOLO can miss people or make incorrect detections.
 
-You are permitted (but not required) to work in groups and share a turn in; you are expected to make equal contribution on any group work you do, and N people's group project should look like N times the work of a single person's lab. Make sure the page for the group turn in is linked to your personal Interactive Lab Hub page.
+**Desktop Morning Reveal:**
+![Desk Screenshot](./desktop.jpg)
 
-## Deliverables & Submission for Lab 5
+### 3. Morning Reveal on Mini PiTFT
 
-For submission, the readme.md page for this lab should be edited to include the work you have done:
-* Upload any materials that explain what you did, including your code and night log, into your Lab 5 repository, and link them in your Lab 5 readme.md.
-* Labs are due on Sundays, make sure to submit your Lab 5 readme.md to Canvas.
+We also created desk_guardian_pitft.py to display the morning report on the Mini PiTFT.
 
-<details>
-  <summary><strong>Submission Cleanup Reminder (Click to Expand)</strong></summary>
+Since the screen is small, we divided the information into three pages:
 
-  **Before submitting your README.md:**
-  - This readme.md file has a lot of extra text for guidance.
-  - Remove all instructional text and example prompts from this file.
-  - You may either delete these sections or use the toggle/hide feature in VS Code to collapse them for a cleaner look.
-  - Your final submission should be neat, focused on your own work, and easy to read for grading.
-</details>
+- **Morning Overview:** Shows the monitoring duration, detection changes, person-present readings, and heartbeats.
+- **Night Timeline:** Shows the detection changes across the overnight monitoring period.
+- **Qwen Summary:** Displays a short AI-generated report based on the overnight log.
+
+The user can press Button A to move to the next page and Button B to return to the previous page.
+
+We tested the Mini PiTFT with our real overnight log. The screen displayed the results correctly, and both buttons worked to switch between pages. The Qwen summary also appeared on the physical screen.
+
+This makes the morning interaction more convenient because the user doesn't need to open their laptop to see the results.
+
+**Mini PiTFT Morning Reveal:**
+
+https://drive.google.com/file/d/1P0s8ASpo0qUicuA4RiiGMEpuTRCyrmz0/view?usp=sharing
+
+### 4. Real Overnight Results
+
+We tested the system using the real overnight log collected from October 29 to October 30, 2026.
+
+The Raspberry Pi monitored the desk area from 10:59 PM to 8:50 AM, for about 9 hours and 51 minutes.
+
+The system recorded:
+
+- 15 detection changes
+- 13 person-present readings
+- 59 heartbeats
+- Most person-present changes occurred around 11 PM
+
+Person-present readings refer to recorded detection changes where YOLO detected at least one person, not the number of different people.
+
+At 11:17:43 PM, the camera recorded no person detected. The next detection change was at 8:50:56 AM, when one person was detected at the center of the camera view.
+
+The heartbeats continued during the long period without new detection changes. This showed that the monitoring program was still running.
+
+### 5. Design Iterations and Limitations
+
+Our first version only printed the Qwen summary in the Terminal. We changed it to a Tkinter dashboard and later added the Mini PiTFT display.
+
+During our Fake Night tests, Qwen sometimes generated incorrect timestamps or assumed different detections were different people.
+
+We also found errors in the real overnight summary. For example, Qwen said no person was detected at 23:15:41, but the actual log recorded one person at right/close. It also described a person at 23:17:43, while the log recorded no person detected.
+
+Because of these problems, we decided to show the original detection timeline separately from the AI summary. This helps users check the actual observations instead of only trusting Qwen.
+
+We also considered the case where nothing happens overnight. If the log contains no person detections, the system is designed to show a quiet-night message instead of generating an imaginary event. However, no detections do not prove that nobody was present.
+
+### 6. Looks Like, Works Like, Acts Like
+
+**Looks Like:** Our final prototype includes a dark-themed Tkinter dashboard and a Mini PiTFT display. The dashboard shows the statistics, timeline, and AI summary. The Mini PiTFT shows a simpler version across three pages.
+
+**Works Like:** The system reads the overnight JSON log and calculates the statistics using Python. It creates the timeline from the recorded timestamps and sends the observations to Qwen for a short summary. The results are displayed on the desktop and the Mini PiTFT.
+
+**Acts Like:** Before going to sleep, the user starts Night Mode using the Desk Guardian interface. The Raspberry Pi monitors the desk overnight. In the morning, the user checks the report on the Mini PiTFT and presses the physical buttons to explore the results.
+
+### 7. Final Demo
+
+Our final demonstration shows the complete interaction from bedtime to the morning:
+
+- **Before Bed:** The user starts Desk Guardian using the Start Night Mode button.
+- **During Night:** The Raspberry Pi runs YOLO and records observations in night_log.jsonl.
+- **Morning Reveal:** The user views the overnight statistics, timeline, and Qwen summary on the Mini PiTFT.
+
+**Final Demo Video:**
+
+[Watch Final Demo Video](https://drive.google.com/file/d/1RRpXN2qMWUk1TP2MO9ssHnWGpijKcu_2/view?usp=sharing)
+
+**Code:** morning.py, morning_reveal.py, desk_guardian_pitft.py

@@ -8,15 +8,13 @@ It only senses and logs; the reasoning waits for the morning (morning.py).
 
 Fake a night first: run it for thirty seconds while you walk around, Ctrl-C, then run morning.py.
 
-Writes night_log.jsonl (one JSON object per line) and a snapshot in snaps/ whenever
-the reading changes to something other than "nobody". Writes an "alive" line every
-10 minutes so you can tell a quiet night from a crashed one.
+Writes night_log.jsonl (one JSON object per line) whenever the reading changes.
+Writes an "alive" line every 10 minutes so you can tell a quiet night from a crashed one.
 Start it in tmux or with nohup so it survives the ssh disconnect (see the README).
 """
 import argparse
 import datetime
 import json
-import pathlib
 import time
 
 import cv2
@@ -32,7 +30,6 @@ classes = None if args.all else [0]        # class 0 is "person", as in yolo_to_
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-pathlib.Path("snaps").mkdir(exist_ok=True)
 log = open("night_log.jsonl", "a")
 last, last_beat = None, 0.0
 
@@ -56,8 +53,6 @@ while True:
         ts = now.isoformat(timespec="seconds")
         if reading != last:
             write({"t": ts, "reading": reading})
-            if reading != "nobody":
-                cv2.imwrite(f"snaps/{now:%Y%m%d-%H%M%S}.jpg", frame)
             last = reading
         if time.time() - last_beat > 600:
             write({"t": ts, "alive": True})
@@ -70,4 +65,5 @@ while True:
         time.sleep(args.interval)
 
 cap.release()
+log.close()
 print("night shift stopped", flush=True)
